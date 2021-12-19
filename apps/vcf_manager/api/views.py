@@ -24,6 +24,10 @@ class UploadFileView(APIView):
 
     def post(self, request, *args, **kwargs):
 
+        '''
+        you cannot upload more than 1 file if you try it the previousgitttt file will be deleted
+        '''
+
         for filename in os.listdir(settings.MEDIA_ROOT):
           file_path = os.path.join(settings.MEDIA_ROOT, filename)
           try:
