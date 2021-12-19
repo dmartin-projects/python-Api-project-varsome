@@ -43,15 +43,31 @@ class VariantDetail(APIView):
 
     def get(self, request,id):
        
-        callset = get_data_from_vcf.to_dataframe()
-        queryset = [ vals for vals in callset.to_dict('records')]
+        flag = False
+        result= []
+        file_path=''
 
-        result = list(filter(lambda item: item.get('ID')==id,queryset ))
+        for filename in os.listdir(settings.MEDIA_ROOT):
+            file_path = os.path.join(settings.MEDIA_ROOT, filename)
 
-        if result:
-            return HttpResponse(result)
+        data = ''
+        with open(file_path, 'r') as f:
+            data= f.readlines()
+
+        data2 = [lines.rstrip() for lines in data]
+
+        pattern = r"\t"+re.escape(id)+r"\t"
+        
+        with open(file_path, 'r') as f:
+             for line in data2:
+                if re.search(pattern,line):
+                    result.append(line.split())
+                    flag=True
+        
+        if flag:
+            return Response(result,status=status.HTTP_204_NO_CONTENT)
         else:
-            raise NotFound(detail="Error 404, variant not found", code=404)
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 class VariantListCreateAPIView(generics.ListCreateAPIView):
 
