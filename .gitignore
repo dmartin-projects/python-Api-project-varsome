@@ -1,5 +1,6 @@
 # my_venv
 venv_api_varsome
+.vcf
 
 # Django #
 *.log
