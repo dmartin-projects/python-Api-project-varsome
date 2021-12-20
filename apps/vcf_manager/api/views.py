@@ -127,9 +127,9 @@ class VariantCreateAPIView(APIView):
 
 class VariantUpdateAPIView(APIView):
 
-    def put(self, request):
+    def put(self, request,id):
 
-        id = self.request.query_params.get('id') 
+        id = id 
         data = get_data_from_vcf.file_to_list()
 
         if data:
