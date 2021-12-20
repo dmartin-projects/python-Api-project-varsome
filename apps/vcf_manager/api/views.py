@@ -50,7 +50,14 @@ class VariantDetailView(APIView):
             
             for line in data2:
                 if re.search(pattern,line):
-                    result.append(line.split())
+                    variant_data=line.split() 
+                    result.append({ 
+                "CHROM": variant_data[0],
+                "POS":variant_data[1],
+                "ID":variant_data[2],
+                "REF":variant_data[3],
+                "ALT":variant_data[4],
+            })
                     flag=True
                 
             if flag:
@@ -112,7 +119,7 @@ class VariantCreateAPIView(APIView):
 
 
             with open(file_path,'a') as f:
-                f.write(f'{request.data.get("CHROM")}\t{request.data.get("POS")}\t{request.data.get("ID")}\t{request.data.get("REF")}\t{request.data.get("ALT")}')
+                f.write(f'\n{request.data.get("CHROM")}\t{request.data.get("POS")}\t{request.data.get("ID")}\t{request.data.get("REF")}\t{request.data.get("ALT")}')
 
             return Response(status=status.HTTP_201_CREATED)
         else:

@@ -14,11 +14,23 @@ def variant_to_list():
 
         data_strip = [lines.rstrip() for lines in data if not lines.startswith('#')]
         for line in data_strip:
+            if len(line)>3: # it avoid empty lines
                 result.append(line.split())
             
         result_only_5_fields = [ item[0:5] for item in result ]
+        result_only_5_fields_to_json= []
 
-        return result_only_5_fields
+        for variant in result_only_5_fields:
+            result_only_5_fields_to_json.append({ 
+                "CHROM": variant[0],
+                "POS":variant[1],
+                "ID":variant[2],
+                "REF":variant[3],
+                "ALT":variant[4],
+            })
+
+
+        return result_only_5_fields_to_json
     else:
         return False
 
