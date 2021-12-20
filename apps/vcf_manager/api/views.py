@@ -19,7 +19,7 @@ class UploadFileView(APIView):
     def post(self, request, *args, **kwargs):
 
         '''
-        you cannot upload more than 1 file if you try it the previousgitttt file will be deleted
+        you cannot upload more than 1 file, if you try it the previous file will be deleted
         '''
 
         for filename in os.listdir(settings.MEDIA_ROOT):
@@ -43,12 +43,9 @@ class VariantDetailView(APIView):
        
         flag = False
         result= []
-        file_path= path_to_vcf.get_path()
+        data2= get_data_from_vcf.file_to_list()
 
-        if os.path.isfile(file_path):
-
-            data2= get_data_from_vcf.file_to_list()
-
+        if data2:
             pattern = r"\t"+re.escape(id)+r"\t"
             
             for line in data2:
