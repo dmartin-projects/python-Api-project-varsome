@@ -4,4 +4,3 @@ from apps.vcf_manager import models
 
 
 admin.site.register(models.UploadedFile)
-admin.site.register(models.Variants)

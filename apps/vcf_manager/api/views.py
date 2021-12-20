@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 
 
 from apps.vcf_manager.api.serializer import UploadSerializer
-from apps.vcf_manager.utils import get_data_from_vcf,path_to_vcf
+from apps.vcf_manager.utils import utils
 
 import os,re
 
@@ -43,7 +43,7 @@ class VariantDetailView(APIView):
        
         flag = False
         result= []
-        data2= get_data_from_vcf.file_to_list()
+        data2= utils.file_to_list()
 
         if data2:
             pattern = r"\t"+re.escape(id)+r"\t"
@@ -78,7 +78,7 @@ class VariantListPaginatedAPIView(APIView):
     def get(self,request):
 
         page = self.request.query_params.get('page') or 1
-        data = get_data_from_vcf.variant_to_list()
+        data = utils.variant_to_list()
 
         if data: 
 
@@ -113,15 +113,32 @@ class VariantCreateAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        file_path=file_path= path_to_vcf.get_path()
+        auth = request.META['HTTP_AUTHORIZATION']
+
+        if auth.split()[1]!=utils.get_token().split('=')[1]:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+            
+
+        file_path=file_path= utils.get_path_to_vcf()
 
         if os.path.isfile(file_path):
 
+            # pattern_CHROM = r"^chr[1-22]|[X,Y,M]"
+            # pattern_POS = r"\t"+re.escape(id)+r"\t"
+            # pattern_REF = r"\t"+re.escape(id)+r"\t"
+            # pattern_ALT = r"\t"+re.escape(id)+r"\t"
+            # pattern_ID = r"\t"+re.escape(id)+r"\t"
+            
 
-            with open(file_path,'a') as f:
-                f.write(f'\n{request.data.get("CHROM")}\t{request.data.get("POS")}\t{request.data.get("ID")}\t{request.data.get("REF")}\t{request.data.get("ALT")}')
+            if request.data.get("CHROM") =='' or request.data.get("POS")=='' or request.data.get("REF") == '' or request.data.get("ALT")=='':
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            else:
+                    
 
-            return Response(status=status.HTTP_201_CREATED)
+                with open(file_path,'a') as f:
+                    f.write(f'\n{request.data.get("CHROM")}\t{request.data.get("POS")}\t{request.data.get("ID")}\t{request.data.get("REF")}\t{request.data.get("ALT")}')
+
+                return Response(status=status.HTTP_201_CREATED)
         else:
             return Response({"error":{
              "code":404,
@@ -133,28 +150,42 @@ class VariantUpdateAPIView(APIView):
 
     def put(self, request,id):
 
+        ''''
+        I asume if i must update a variant it must keep same ID so all fields are updated except ID 
+        '''
+
         id = id 
-        data = get_data_from_vcf.file_to_list()
+        data = utils.file_to_list()
 
         if data:
 
+            auth = request.META['HTTP_AUTHORIZATION']
+
+            if auth.split()[1]!=utils.get_token().split('=')[1]:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+
             flag = False
-            file_path= path_to_vcf.get_path()
-            
-            pattern = r"\t"+re.escape(id)+r"\t"
-            
-            with open(file_path, 'w') as f:
-                for line in data:
-                    if re.search(pattern,line):
-                        f.write(f'{request.data.get("CHROM")}\t{request.data.get("POS")}\t{request.data.get("ID")}\t{request.data.get("REF")}\t{request.data.get("ALT")}')
-                        flag=True
-                    else:
-                        f.write(line+'\n')
-        
-            if flag:
-                return Response(status=status.HTTP_200_OK)
+            file_path= utils.get_path_to_vcf()
+
+            if request.data.get("CHROM") =='' or request.data.get("POS") =='' or request.data.get("REF") == '' or request.data.get("ALT")=='':
+                print('heyyyyyyy!!')
+                return Response(status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+                pattern = r"\t"+re.escape(id)+r"\t"
+                
+                with open(file_path, 'w') as f:
+                    for line in data:
+                        if len(line)>3:
+                            if re.search(pattern,line):
+                                f.write(f'\n{request.data.get("CHROM")}\t{request.data.get("POS")}\t{id}\t{request.data.get("REF")}\t{request.data.get("ALT")}')
+                                flag=True
+                            else:
+                                f.write(line+'\n')
+            
+                if flag:
+                    return Response(status=status.HTTP_200_OK)
+                else:
+                    return Response(status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"error":{
              "code":404,
@@ -167,25 +198,28 @@ class VariantDeleteAPIView(APIView):
 
     def delete(self, request,id):
 
+        auth = request.META['HTTP_AUTHORIZATION']
+
+        if auth.split()[1]!=utils.get_token().split('=')[1]:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+
         flag = False
-        file_path= path_to_vcf.get_path()
+        data = utils.file_to_list()
 
-        if os.path.isfile(file_path):
+        if data:
 
-            data = ''
-            with open(file_path, 'r') as f:
-                data= f.readlines()
-
-            data2 = [lines.rstrip() for lines in data]
-
+            file_path= utils.get_path_to_vcf()
+            
             pattern = r"\t"+re.escape(id)+r"\t"
             
             with open(file_path, 'w') as f:
-                for line in data2:
-                    if re.search(pattern,line)==None:
-                        f.write(line+'\n')
-                    else:
-                        flag=True
+                for line in data:
+                    if len(line)>3:    
+                        if re.search(pattern,line)==None:
+                            f.write(line+'\n')
+                        else:
+                            flag=True
             
             if flag:
                 return Response(status=status.HTTP_204_NO_CONTENT)
