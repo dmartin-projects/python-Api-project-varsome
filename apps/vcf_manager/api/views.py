@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
 from rest_framework.exceptions import NotFound
+from django.core.paginator import Paginator
 
 
 from apps.vcf_manager.api.serializer import UploadSerializer,VariantsSerializer
@@ -73,32 +74,43 @@ class VariantDetail(APIView):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-class VariantListCreateAPIView(generics.ListCreateAPIView):
+class VariantListCreateAPIView(APIView):
 
 
+    def get(self,request):
 
-    serializer_class = VariantsSerializer
+        page = self.request.query_params.get('page') or 1
 
-    file_path=''
+        data = get_data_from_vcf.to_list()
 
-    for filename in os.listdir(settings.MEDIA_ROOT):
-        file_path = os.path.join(settings.MEDIA_ROOT, filename)
+        if data: 
 
-    if os.path.isfile(file_path):
-        print(file_path)
-        callset = allel.vcf_to_dataframe( file_path, fields=['CHROM', 'POS','ID','REF','ALT'])
-        queryset = [Variants(**vals) for vals in callset.to_dict('records')]
-        pagination_class = SmallSetPagination
-        
-    else:
-        print(file_path)
-        queryset = [Variants("0000",0000,"0000","0","0","0","0")]
+            paginator = Paginator(data, 20)
+            page = int(page)
 
-    '''
-    i am aware is an awfull solution to avoid error raised but
-    i had not enough time
-    SORRY
-    '''
+
+            next_page       = page+1 if page+1>=1 and page+1<=paginator.num_pages else None
+            previous_page   = page-1 if page-1>=1 and page<=paginator.num_pages else None
+
+            next_page_url     = f'http://127.0.0.1:8000/api/?page={next_page}' if next_page else None
+            previous_page_url = f'http://127.0.0.1:8000/api/?page={previous_page}' if previous_page else None
+            
+            
+            data_paginated = paginator.page(page).object_list if page>=1 and page<=paginator.num_pages else "no data available"
+
+            result={
+                "previous page": previous_page_url,
+                "next page": next_page_url,
+                "total pages":paginator.num_pages,
+                "data":data_paginated
+            }
+
+            return Response(result,status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"error":{
+             "code":404,
+             "message": "VCF file not found, please use http://127.0.0.1:8000/api/upload_files/ end-point to upload your file"
+         }}, status=status.HTTP_404_NOT_FOUND)
     
 class VariantCreateAPIView(APIView):
 
@@ -110,7 +122,7 @@ class VariantCreateAPIView(APIView):
             file_path = os.path.join(settings.MEDIA_ROOT, filename)
 
         with open(file_path,'a') as f:
-             f.write(f'\n{request.data.get("CHROM")}\t{request.data.get("POS")}\t{request.data.get("ID")}\t{request.data.get("REF")}\t{request.data.get("ALT")}')
+             f.write(f'{request.data.get("CHROM")}\t{request.data.get("POS")}\t{request.data.get("ID")}\t{request.data.get("REF")}\t{request.data.get("ALT")}')
 
         return Response(status=status.HTTP_201_CREATED)
 
