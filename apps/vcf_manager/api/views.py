@@ -36,41 +36,6 @@ class UploadFileView(APIView):
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class VariantDetailView(APIView):
-
-    def get(self, request,id):
-       
-        flag = False
-        result= []
-        data2= utils.file_to_list()
-
-        if data2:
-            pattern = r"\t"+re.escape(id)+r"\t"
-            
-            for line in data2:
-                if re.search(pattern,line):
-                    variant_data=line.split() 
-                    result.append({ 
-                "CHROM": variant_data[0],
-                "POS":variant_data[1],
-                "ID":variant_data[2],
-                "REF":variant_data[3],
-                "ALT":variant_data[4],
-            })
-                    flag=True
-                
-            if flag:
-                return Response(result,status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response(status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response({"error":{
-             "code":404,
-             "message": "VCF file not found, please use http://127.0.0.1:8000/api/upload_files/ end-point to upload your file"
-         }}, status=status.HTTP_404_NOT_FOUND)
-
-        
-
 class VariantListPaginatedAPIView(APIView):
 
       
@@ -113,6 +78,42 @@ class VariantListPaginatedAPIView(APIView):
              "code":404,
              "message": "VCF file not found, please use http://127.0.0.1:8000/api/upload_files/ end-point to upload your file"
          }}, status=status.HTTP_404_NOT_FOUND)
+
+
+class VariantDetailView(APIView):
+
+    def get(self, request,id):
+       
+        flag = False
+        result= []
+        data2= utils.file_to_list()
+
+        if data2:
+            pattern = r"\t"+re.escape(id)+r"\t"
+            
+            for line in data2:
+                if re.search(pattern,line):
+                    variant_data=line.split() 
+                    result.append({ 
+                "CHROM": variant_data[0],
+                "POS":variant_data[1],
+                "ID":variant_data[2],
+                "REF":variant_data[3],
+                "ALT":variant_data[4],
+            })
+                    flag=True
+                
+            if flag:
+                return Response(result,status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"error":{
+             "code":404,
+             "message": "VCF file not found, please use http://127.0.0.1:8000/api/upload_files/ end-point to upload your file"
+         }}, status=status.HTTP_404_NOT_FOUND)
+
+        
     
 class VariantCreateAPIView(APIView):
 
