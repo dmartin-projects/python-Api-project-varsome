@@ -18,6 +18,8 @@ def get_path_to_vcf():
 
     for filename in os.listdir(settings.MEDIA_ROOT):
         file_path = os.path.join(settings.MEDIA_ROOT, filename)
+    
+   
 
     return file_path
 
