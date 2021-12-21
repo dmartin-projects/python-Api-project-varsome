@@ -22,7 +22,7 @@ def get_path_to_vcf():
     return file_path
 
 
-def variant_to_list():
+def variants_to_list():
 
     file_path=get_path_to_vcf()
     result=[]

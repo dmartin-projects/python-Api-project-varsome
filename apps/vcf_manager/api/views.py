@@ -46,7 +46,7 @@ class VariantListPaginatedAPIView(APIView):
 
         page = request.query_params.get('page') or 1
 
-        data = utils.variant_to_list()
+        data = utils.variants_to_list()
 
         if data: 
 
@@ -55,7 +55,7 @@ class VariantListPaginatedAPIView(APIView):
 
 
             next_page       = page+1 if page+1>=1 and page+1<=paginator.num_pages else None
-            previous_page   = page-1 if page-1>=1 and page<=paginator.num_pages else None
+            previous_page   = page-1 if page-1>=1 and page-1<=paginator.num_pages else None
 
             next_page_url     = f'http://127.0.0.1:8000/api/?page={next_page}' if next_page else None
             previous_page_url = f'http://127.0.0.1:8000/api/?page={previous_page}' if previous_page else None
