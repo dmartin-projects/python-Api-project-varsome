@@ -14,7 +14,7 @@ class VcfManagerTestCase(TestCase):
 
   
         self.access_token= utils.get_token()
-        self.access_token_bad='9944b09199c62bcf9418ad846dd'
+        self.access_token_wrong='9944b09199c62bcf9418ad84wrong'
 
         self.variant = { "CHROM": "chr1","POS":1000,"ALT":"A","REF":"G","ID":"rs565464"}
         self.variant_miss_alt = { "CHROM": "chr1","POS":1000,"ALT":"","REF":"G","ID":"rs565464"}
@@ -49,7 +49,7 @@ class VcfManagerTestCase(TestCase):
     def test_new_variant_bad_token(self):
 
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='Token ' + self.access_token_bad)
+        client.credentials(HTTP_AUTHORIZATION='Token ' + self.access_token_wrong)
 
         response = client.post(
             '/api/add-new-variant/',
