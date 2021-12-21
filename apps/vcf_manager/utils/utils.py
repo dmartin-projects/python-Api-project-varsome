@@ -1,5 +1,7 @@
 import os
 from django.conf import settings
+import lxml.etree
+import lxml.builder 
 
 
 
@@ -7,7 +9,7 @@ def get_token():
     token=''
     with open(settings.TOKEN,'r') as f:
         token = f.readline()
-    return token
+    return token.split('=')[1]
 
 
 def get_path_to_vcf():
@@ -35,7 +37,7 @@ def variant_to_list():
             if len(line)>3: # it avoid empty lines
                 result.append(line.split())
             
-        result_only_5_fields = [ item[0:5] for item in result ]
+        result_only_5_fields = [item[0:5] for item in result ]
         result_only_5_fields_to_json= []
 
         for variant in result_only_5_fields:
@@ -46,8 +48,7 @@ def variant_to_list():
                 "REF":variant[3],
                 "ALT":variant[4],
             })
-
-
+        
         return result_only_5_fields_to_json
     else:
         return False

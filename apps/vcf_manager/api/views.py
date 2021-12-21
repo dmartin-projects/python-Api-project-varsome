@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.paginator import Paginator
 
-
 from apps.vcf_manager.api.serializer import UploadSerializer
 from apps.vcf_manager.utils import utils
 
@@ -74,10 +73,14 @@ class VariantDetailView(APIView):
 
 class VariantListPaginatedAPIView(APIView):
 
-
+      
     def get(self,request):
 
-        page = self.request.query_params.get('page') or 1
+        if request.content_type not in ['application/json','text/plain', '*/*']:
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        page = request.query_params.get('page') or 1
+
         data = utils.variant_to_list()
 
         if data: 
@@ -95,14 +98,16 @@ class VariantListPaginatedAPIView(APIView):
             
             data_paginated = paginator.page(page).object_list if page>=1 and page<=paginator.num_pages else "no data available"
 
+           
             result={
                 "previous page": previous_page_url,
                 "next page": next_page_url,
                 "total pages":paginator.num_pages,
                 "data":data_paginated
             }
-
-            return Response(result,status=status.HTTP_204_NO_CONTENT)
+            
+            return Response(result,status=status.HTTP_200_OK)
+            
         else:
             return Response({"error":{
              "code":404,
@@ -113,24 +118,28 @@ class VariantCreateAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
 
-        auth = request.META['HTTP_AUTHORIZATION']
+        auth = request.headers.get('Authorization')
 
-        if auth.split()[1]!=utils.get_token().split('=')[1]:
+        if auth:
+
+            if auth.split()[1]!=utils.get_token():
+                return Response(status=status.HTTP_403_FORBIDDEN)
+        else:
             return Response(status=status.HTTP_403_FORBIDDEN)
             
 
-        file_path=file_path= utils.get_path_to_vcf()
+        file_path= utils.get_path_to_vcf()
 
         if os.path.isfile(file_path):
 
-            # pattern_CHROM = r"^chr[1-22]|[X,Y,M]"
-            # pattern_POS = r"\t"+re.escape(id)+r"\t"
-            # pattern_REF = r"\t"+re.escape(id)+r"\t"
-            # pattern_ALT = r"\t"+re.escape(id)+r"\t"
-            # pattern_ID = r"\t"+re.escape(id)+r"\t"
+            pattern_CHROM = r"^chr[1-9]$|^chr[1]+[0-9]$|^chr[2]+[0-2]$|^chrX{1}$|^chrY{1}$|^chrM{1}$"
+            pattern_POS = r"^\d*$"
+            pattern_REF = r"^A{1}$|^T{1}$|^G{1}$|^C{1}$|^\.{1}$"
+            pattern_ALT = r"^A{1}$|^T{1}$|^G{1}$|^C{1}$|^\.{1}$"
+            pattern_ID = r"^rs\d*$"
             
 
-            if request.data.get("CHROM") =='' or request.data.get("POS")=='' or request.data.get("REF") == '' or request.data.get("ALT")=='':
+            if not re.search(pattern_CHROM,request.data.get("CHROM")) or not re.search(pattern_POS,str(request.data.get("POS"))) or not re.search(pattern_REF,request.data.get("REF")) or not re.search(pattern_ALT,request.data.get("ALT")) or not re.search(pattern_ID,request.data.get("ID")):    
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             else:
                     
@@ -159,16 +168,20 @@ class VariantUpdateAPIView(APIView):
 
         if data:
 
-            auth = request.META['HTTP_AUTHORIZATION']
+            auth = request.headers.get('Authorization')
 
-            if auth.split()[1]!=utils.get_token().split('=')[1]:
+            if auth:
+
+                if auth.split()[1]!=utils.get_token():
+                    return Response(status=status.HTTP_403_FORBIDDEN)
+            else:
                 return Response(status=status.HTTP_403_FORBIDDEN)
 
             flag = False
             file_path= utils.get_path_to_vcf()
 
             if request.data.get("CHROM") =='' or request.data.get("POS") =='' or request.data.get("REF") == '' or request.data.get("ALT")=='':
-                print('heyyyyyyy!!')
+                
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             else:
                 pattern = r"\t"+re.escape(id)+r"\t"
@@ -197,10 +210,14 @@ class VariantUpdateAPIView(APIView):
 class VariantDeleteAPIView(APIView):
 
     def delete(self, request,id):
+        
+        auth = request.headers.get('Authorization')
 
-        auth = request.META['HTTP_AUTHORIZATION']
+        if auth:
 
-        if auth.split()[1]!=utils.get_token().split('=')[1]:
+            if auth.split()[1]!=utils.get_token():
+                return Response(status=status.HTTP_403_FORBIDDEN)
+        else:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
 

@@ -10,6 +10,6 @@ urlpatterns= [
     path('<str:id>', views.VariantDetailView.as_view()),
     path('update-variant/<str:id>', views.VariantUpdateAPIView.as_view()),
     path('delete-variant/<str:id>', views.VariantDeleteAPIView.as_view()),
-    path('add-new-varian/', views.VariantCreateAPIView.as_view())
+    path('add-new-variant/', views.VariantCreateAPIView.as_view())
 
 ]
