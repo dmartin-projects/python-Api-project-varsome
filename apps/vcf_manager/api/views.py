@@ -1,8 +1,18 @@
+from django.http.response import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.paginator import Paginator
+
+from rest_framework.parsers import JSONParser
+from rest_framework_xml.parsers import XMLParser
+
+
+from rest_framework.decorators import api_view, renderer_classes,parser_classes
+
+
+
 
 from apps.vcf_manager.api.serializer import UploadSerializer
 from apps.vcf_manager.utils import utils
@@ -32,17 +42,14 @@ class UploadFileView(APIView):
 
         if file_serializer.is_valid():
             file_serializer.save()
-            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+            return JsonResponse(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VariantListPaginatedAPIView(APIView):
 
-      
-    def get(self,request):
 
-        if request.content_type not in ['application/json','text/plain', '*/*']:
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+    def get(self,request,format=None):
 
         page = request.query_params.get('page') or 1
 
@@ -63,7 +70,7 @@ class VariantListPaginatedAPIView(APIView):
             
             data_paginated = paginator.page(page).object_list if page>=1 and page<=paginator.num_pages else "no data available"
 
-           
+            
             result={
                 "previous page": previous_page_url,
                 "next page": next_page_url,
@@ -75,9 +82,9 @@ class VariantListPaginatedAPIView(APIView):
             
         else:
             return Response({"error":{
-             "code":404,
-             "message": "VCF file not found, please use http://127.0.0.1:8000/api/upload_files/ end-point to upload your file"
-         }}, status=status.HTTP_404_NOT_FOUND)
+                "code":404,
+                "message": "VCF file not found, please use http://127.0.0.1:8000/api/upload_files/ end-point to upload your file"
+            }}, status=status.HTTP_404_NOT_FOUND)
 
 
 class VariantDetailView(APIView):
