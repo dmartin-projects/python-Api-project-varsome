@@ -32,10 +32,11 @@ def variant_to_list():
         with open(file_path, 'r') as f:
             data= f.readlines()
 
-        data_strip = [lines.rstrip() for lines in data if not lines.startswith('#')]
+        data_strip = [lines.split('\t') for lines in data if not lines.startswith('#')]
+       
         for line in data_strip:
             if len(line)>3: # it avoid empty lines
-                result.append(line.split())
+                result.append(line)
             
         result_only_5_fields = [item[0:5] for item in result ]
         result_only_5_fields_to_json= []
