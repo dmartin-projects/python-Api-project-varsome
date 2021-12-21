@@ -4,7 +4,7 @@ This project has been created as a test answer for a position as a developer in 
 
 ## API
 
-This APIrest is build with Django Rest Framework. To use it follow next steps
+This REST API is build with Django Rest Framework. To use it follow next steps
 
 ### start server
 

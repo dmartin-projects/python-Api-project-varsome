@@ -73,6 +73,19 @@ class VcfManagerTestCase(TestCase):
        
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_no_AUTHORIZATION(self):
+
+        client = APIClient()
+
+        response = client.post(
+            '/api/add-new-variant/',
+            self.variant,
+            format='json'
+            )
+       
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
 
 
