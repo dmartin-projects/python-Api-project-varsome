@@ -12,7 +12,8 @@ class VcfManagerTestCase(TestCase):
 
     def setUp(self):
 
-        self.access_token= utils.get_token().split('=')[1]
+  
+        self.access_token= utils.get_token()
         self.access_token_bad='9944b09199c62bcf9418ad846dd'
 
         self.variant = { "CHROM": "chr1","POS":1000,"ALT":"A","REF":"G","ID":"rs565464"}
@@ -50,14 +51,11 @@ class VcfManagerTestCase(TestCase):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Token ' + self.access_token_bad)
 
-
-
         response = client.post(
             '/api/add-new-variant/',
             self.variant,
             format='json'
             )
-       
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -74,19 +72,37 @@ class VcfManagerTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_no_AUTHORIZATION(self):
+    def test_get_variant_by_id(self):
 
         client = APIClient()
-
-        response = client.post(
-            '/api/add-new-variant/',
-            self.variant,
-            format='json'
-            )
-       
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
+        response = client.get(
+            '/api/rs62635284',
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_get_variant_not_found(self):
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + self.access_token)
+        
+        response = client.get(
+            '/api/rs6263528499',
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_not_http_accept(self):
+
+        client = APIClient() 
+        
+        response = client.get(
+            '/api/',
+            HTTP_ACCEPT='application/javascript'
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
 
 
 
