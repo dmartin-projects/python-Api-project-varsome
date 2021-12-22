@@ -29,5 +29,5 @@ Once our server is running you must upload a vcf file using following endpoint :
 
 ### Run tests
 
-to run unit test use `python manage.py test   `
+to run unit test use `python manage.py test`
 
