@@ -9,11 +9,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework_xml.parsers import XMLParser
 
 
-from rest_framework.decorators import api_view, renderer_classes,parser_classes
-
-
-
-
 from apps.vcf_manager.api.serializer import UploadSerializer
 from apps.vcf_manager.utils import utils
 
@@ -23,6 +18,7 @@ from django.conf import settings
 
 
 class UploadFileView(APIView):
+
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
@@ -46,10 +42,12 @@ class UploadFileView(APIView):
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class VariantListPaginatedAPIView(APIView):
 
+class ManagerVCFiles(APIView):
 
-    def get(self,request,format=None):
+    parser_classes = (JSONParser,XMLParser)
+
+    def get_list(self,request,format=None):
 
         page = request.query_params.get('page') or 1
 
@@ -87,13 +85,15 @@ class VariantListPaginatedAPIView(APIView):
             }}, status=status.HTTP_404_NOT_FOUND)
 
 
-class VariantDetailView(APIView):
-
-    def get(self, request,id):
+    def get(self, request):
        
+        id = request.query_params.get('id')
         flag = False
         result= []
         data2= utils.file_to_list()
+
+        if not id:
+            return self.get_list(request)
 
         if data2:
             pattern = r"\t"+re.escape(id)+r"\t"
@@ -120,11 +120,8 @@ class VariantDetailView(APIView):
              "message": "VCF file not found, please use http://127.0.0.1:8000/api/upload_files/ end-point to upload your file"
          }}, status=status.HTTP_404_NOT_FOUND)
 
-        
-    
-class VariantCreateAPIView(APIView):
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
 
         auth = request.headers.get('Authorization')
 
@@ -163,15 +160,13 @@ class VariantCreateAPIView(APIView):
          }}, status=status.HTTP_404_NOT_FOUND)
 
 
-class VariantUpdateAPIView(APIView):
-
-    def put(self, request,id):
+    def put(self, request):
 
         ''''
         I asume if i must update a variant it must keep same ID so all fields are updated except ID 
         '''
 
-        id = id 
+        id = request.query_params.get('id') 
         data = utils.file_to_list()
 
         if data:
@@ -213,11 +208,8 @@ class VariantUpdateAPIView(APIView):
              "message": "VCF file not found, please use http://127.0.0.1:8000/api/upload_files/ end-point to upload your file"
          }}, status=status.HTTP_404_NOT_FOUND)
 
-       
 
-class VariantDeleteAPIView(APIView):
-
-    def delete(self, request,id):
+    def delete(self, request):
         
         auth = request.headers.get('Authorization')
 
@@ -231,6 +223,7 @@ class VariantDeleteAPIView(APIView):
 
         flag = False
         data = utils.file_to_list()
+        id = request.query_params.get('id')
 
         if data:
 
@@ -255,6 +248,3 @@ class VariantDeleteAPIView(APIView):
              "code":404,
              "message": "VCF file not found, please use http://127.0.0.1:8000/api/upload_files/ end-point to upload your file"
          }}, status=status.HTTP_404_NOT_FOUND)
-
-                
-                
