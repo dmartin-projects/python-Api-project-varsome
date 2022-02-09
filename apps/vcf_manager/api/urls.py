@@ -12,4 +12,4 @@ urlpatterns= [
 
 ]
 
-urlpatterns = format_suffix_patterns(urlpatterns, allowed=['json', 'xml'])
+#urlpatterns = format_suffix_patterns(urlpatterns, allowed=['json', 'xml'])

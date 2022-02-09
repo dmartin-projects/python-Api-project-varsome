@@ -51,6 +51,7 @@ class ManagerVCFiles(APIView):
 
         page = request.query_params.get('page') or 1
 
+
         data = utils.variants_to_list()
 
         if data: 
